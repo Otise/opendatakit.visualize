@@ -1,0 +1,125 @@
+<html>
+	<head>
+		<title>bar chart?</title>
+		<!--Load the AJAX API-->
+	    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+		<script type="text/javascript" src="jquery-1.3.2.js"></script>
+	    <script type="text/javascript">
+		
+		// Load the Visualization API and the piechart package.
+		google.load('visualization', '1', {'packages':['barchart']});
+		google.load('visualization', '1', {'packages':['piechart']});
+		
+		
+		// Set a callback to run when the Google Visualization API is loaded.
+		//google.setOnLoadCallback(drawChart);
+		
+		// Callback that creates and populates a data table 
+		// instantiates the chart, passes in the data and
+		// draws it.
+	    function drawChart(xmlSRC, chartType, parsingStrategy, axisName) {
+		  	
+
+			var testdata = new google.visualization.DataTable();
+			testdata.addColumn('string', 'name');
+			testdata.addColumn('number', 'count');
+			
+			var xmlReq = new XMLHttpRequest();
+			xmlReq.open("GET", xmlSRC, false);
+			xmlReq.send(null);
+			var xmlDoc = xmlReq.responseXML;
+			var rawData = xmlDoc.getElementsByTagName("datum");
+			
+			
+			var toBeData = parsingStrategy(rawData, axisName);
+	
+	      // Create our data table.
+	        var data = new google.visualization.DataTable();
+	        data.addColumn('string', 'Name');
+	        data.addColumn('number', 'GeoTagsAdded');
+			
+			for (var name in toBeData){
+				data.addRows([toBeData[name]]);
+			}
+				
+	        // Instantiate and draw our chart, passing in some options.
+	        var chart = new chartType(document.getElementById('chart_div'));
+	        chart.draw(data, {width: 400, height: 240, is3D: true, title: 'Number of Geotags by Person'});
+	    }
+		  
+		  
+		  //this function takes raw data and creates a table of data for use by a visualization.
+		function addLikeData(rawData, keyName){
+		  
+		  	var toBeData = new Array();
+		  	
+		  	for (var i = 0; i < rawData.length; i++) {
+				key = rawData[i].getElementsByTagName(keyName)[0].childNodes[0].nodeValue;
+		  		if (toBeData[key] != null) {
+		  			toBeData[key][1]++;
+		  		}
+		  		else {
+		  			toBeData[key] = new Array(key, 1);
+		  		}
+		  	}
+			return toBeData;
+		}
+		  
+		  
+		  //choose which chart type we'll use by reading the chart making form
+		function chooseChartType(){
+		  	//get the chart type...
+			var graphform = document.getElementById("graphform");
+			var chartTypeOptionIndex = graphform.elements["charttype"].selectedIndex;
+			var chartType = graphform.elements["charttype"].options[chartTypeOptionIndex].value;
+			var chartFunction;
+			
+			switch (chartType) {
+				case "Bar Chart":
+					chartFunction = google.visualization.BarChart;
+					break;
+				case "Pie Chart":
+					chartFunction = google.visualization.PieChart;
+					break;
+				default:
+					chartFunction = google.visualization.BarChart;
+			}
+			
+			return chartFunction;
+		}
+			
+		//choose which column to use as the main axis based on the chart making form
+		function choosePrimaryColumn(){
+			//get the primary column...
+			var graphform = document.getElementById("graphform");
+			var primarycolOptionIndex = graphform.elements["primarycol"].selectedIndex;
+			var primarycol = graphform.elements["primarycol"].options[primarycolOptionIndex].value;
+			
+			return primarycol;
+		}
+		
+		function chooseDataSource(){
+			var graphform = document.getElementById("graphform");
+			var datasource = graphform.elements["datasource"].value;
+			return datasource;
+		}
+		  
+		  
+    </script>
+	</head>
+	<div id="chart_div"></div>
+	<div id="formdiv">
+		<form id="graphform" action="javascript: chooseChartType(); return false;">
+			Get data from <input name="datasource" id="datasource" type="text" value="http://127.0.0.1:8000/viz-static/testdata.xml"/>.  Display it as a 
+			<select name="charttype" id="charttype">
+				<option>Pie Chart</option>
+				<option>Bar Chart</option>
+			</select> counting the number of occurrenses of each unique
+			<select name="primarycol" id="primarycol">.
+				<option>name</option>
+				<option>location</option>
+			</select>
+			<input type="select" onclick="javascript:drawChart(chooseDataSource(), chooseChartType(), addLikeData, choosePrimaryColumn()); return false;" value="Chart it!" />
+		</form>
+	</div>
+</html>

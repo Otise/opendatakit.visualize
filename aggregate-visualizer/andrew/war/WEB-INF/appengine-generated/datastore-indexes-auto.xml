@@ -1,0 +1,10 @@
+<!-- Indices written at Thu, 10 Dec 2009 21:35:09 UTC -->
+
+<datastore-indexes>
+
+    <!-- Used 5 times in query history -->
+    <datastore-index kind="FormElement" ancestor="true" source="auto">
+        <property name="childNumber" direction="asc"/>
+    </datastore-index>
+
+</datastore-indexes>
